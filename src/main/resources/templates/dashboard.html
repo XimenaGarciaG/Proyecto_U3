@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Administración</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <h3>Menú</h3>
+            <ul id="dynamicMenu">
+                <!-- Se cargará mediante JS -->
+            </ul>
+            <hr>
+            <button onclick="logout()" class="btn btn-danger">Cerrar Sesión</button>
+        </aside>
+        
+        <main class="main-content">
+            <div class="header">
+                <div class="breadcrumbs" id="breadcrumbs">
+                    <span>Inicio</span>
+                </div>
+                <div class="user-profile" id="userProfile">
+                    <div class="user-info">
+                        <span class="user-name" id="headerUserName">Cargando...</span>
+                        <span class="user-role" id="headerUserRole">Perfil</span>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name=User&background=ffdbe9&color=f06292" id="headerUserAvatar" class="img-circle" style="width: 35px; height: 35px;">
+                    <div class="profile-dropdown">
+                        <a href="#" class="dropdown-item" onclick="logout()">
+                            <span>🚪</span> Cerrar Sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="contentArea">
+                <h1>Bienvenido</h1>
+                <p>Seleccione un módulo del menú lateral para comenzar.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals area -->
+    <div id="modalContainer" class="modal">
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <script src="/js/utils.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/modules/perfil.js"></script>
+    <script src="/js/modules/usuario.js"></script>
+    <script src="/js/modules/permiso_perfil.js"></script>
+    <script src="/js/modules/modulo.js"></script>
+    <script src="/js/menu.js"></script>
+</body>
+</html>
