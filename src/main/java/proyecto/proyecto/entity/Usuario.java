@@ -35,6 +35,6 @@ public class Usuario {
     @Column(length = 20)
     private String strNumeroCelular;
 
-    @Lob
-    private String imagen; // Base64 or path
+    @Column(length = 500)
+    private String imagen; // ImgBB URL
 }

@@ -58,6 +58,6 @@ public class AuthService {
                     return dto;
                 }).collect(Collectors.toList());
 
-        return new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), userDetails.getPerfilId(), permisos);
+        return new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getEmail(), userDetails.getPerfilId(), userDetails.getImagen(), permisos);
     }
 }

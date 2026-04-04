@@ -15,13 +15,14 @@ public class UserDetailsImpl implements UserDetails {
     private String email;
     private Long perfilId;
     private String perfilNombre;
+    private String imagen;
 
     @JsonIgnore
     private String password;
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(Long id, String username, String email, String password, Long perfilId, String perfilNombre,
+    public UserDetailsImpl(Long id, String username, String email, String password, Long perfilId, String perfilNombre, String imagen,
             Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
@@ -29,6 +30,7 @@ public class UserDetailsImpl implements UserDetails {
         this.password = password;
         this.perfilId = perfilId;
         this.perfilNombre = perfilNombre;
+        this.imagen = imagen;
         this.authorities = authorities;
     }
 
@@ -40,6 +42,7 @@ public class UserDetailsImpl implements UserDetails {
                 usuario.getStrPwd(),
                 usuario.getPerfil().getId(),
                 usuario.getPerfil().getStrNombrePerfil(),
+                usuario.getImagen(),
                 authorities);
     }
 
@@ -52,6 +55,7 @@ public class UserDetailsImpl implements UserDetails {
     public String getEmail() { return email; }
     public Long getPerfilId() { return perfilId; }
     public String getPerfilNombre() { return perfilNombre; }
+    public String getImagen() { return imagen; }
 
     @Override
     public String getPassword() { return password; }

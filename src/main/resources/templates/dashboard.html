@@ -26,14 +26,28 @@
                 </div>
                 <div class="user-profile" id="userProfile">
                     <div class="user-info">
-                        <span class="user-name" id="headerUserName">Cargando...</span>
-                        <span class="user-role" id="headerUserRole">Perfil</span>
+                        <span class="user-name" id="headerUserName"></span>
                     </div>
                     <img src="https://ui-avatars.com/api/?name=User&background=ffdbe9&color=f06292" id="headerUserAvatar" class="img-circle" style="width: 35px; height: 35px;">
-                    <div class="profile-dropdown">
-                        <a href="#" class="dropdown-item" onclick="logout()">
-                            <span>🚪</span> Cerrar Sesión
-                        </a>
+                    <div class="profile-dropdown profile-credential">
+                        <div class="credential-header">
+                            <img src="" id="credentialAvatar" class="avatar-large">
+                        </div>
+                        <div class="credential-body">
+                            <h4 id="credentialName">Nombre Usuario</h4>
+                            <p id="credentialRole" class="badge">Rol</p>
+                            <div class="credential-info">
+                                <div class="info-row">
+                                    <span>📧</span> <span id="credentialEmail">email@example.com</span>
+                                </div>
+                                <div class="info-row">
+                                    <span>🆔</span> <span id="credentialId">ID: #000</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="credential-footer">
+                            <button onclick="logout()" class="btn btn-danger btn-block">Cerrar Sesión</button>
+                        </div>
                     </div>
                 </div>
             </div>

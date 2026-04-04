@@ -50,14 +50,17 @@ async function openPerfilModal(id = null) {
             <input type="text" name="strNombrePerfil" value="${perfil.strNombrePerfil}" required>
         </div>
         <div class="form-group">
-            <label>¿Es Administrador?</label>
-            <input type="checkbox" name="bitAdministrador" ${perfil.bitAdministrador ? 'checked' : ''}>
+            <label>Tipo de Perfil</label>
+            <select name="bitAdministrador">
+                <option value="true" ${perfil.bitAdministrador ? 'selected' : ''}>Administrador</option>
+                <option value="false" ${!perfil.bitAdministrador ? 'selected' : ''}>Estándar</option>
+            </select>
         </div>
     `;
 
     showModal(id ? 'Editar Perfil' : 'Agregar Perfil', formHtml, async (formData) => {
         const data = Object.fromEntries(formData.entries());
-        data.bitAdministrador = formData.get('bitAdministrador') === 'on';
+        data.bitAdministrador = formData.get('bitAdministrador') === 'true';
         
         try {
             await request(`/perfil${id ? '/' + id : ''}`, {

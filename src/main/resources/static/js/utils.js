@@ -1,4 +1,5 @@
 const API_URL = '/api';
+const IMGBB_API_KEY = '2287c899c31a05580bcc63797272e536';
 
 function getAuthHeader() {
     const token = localStorage.getItem('token');
@@ -79,6 +80,21 @@ function showModal(title, formHtml, onSave) {
 
 function closeModal() {
     document.getElementById('modalContainer').style.display = 'none';
+}
+
+async function uploadToImgBB(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) throw new Error('Error al subir imagen a ImgBB');
+    
+    const result = await response.json();
+    return result.data.url;
 }
 
 function createPaginator(data, onPageChange) {

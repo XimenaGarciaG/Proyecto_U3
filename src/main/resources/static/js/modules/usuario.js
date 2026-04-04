@@ -22,7 +22,7 @@ async function loadUsuarioModule(page = 0) {
                     ${data.content.map(u => `
                         <tr>
                             <td style="display: flex; align-items: center; gap: 1rem">
-                                <img src="${u.imagen || 'https://ui-avatars.com/api/?name='+u.strNombreUsuario+'&background=ffdbe9&color=f06292'}" class="img-circle">
+                                <img src="${u.imagen || 'https://ui-avatars.com/api/?name='+encodeURIComponent(u.strNombreUsuario)+'&background=ffdbe9&color=f06292'}" class="img-circle" onerror="this.src='https://ui-avatars.com/api/?name=U&background=ffdbe9&color=f06292'">
                                 <div>
                                     <div style="font-weight: 600">${u.strNombreUsuario}</div>
                                     <div style="font-size: 0.8rem; color: var(--text-muted)">${u.perfil.strNombrePerfil}</div>
@@ -61,8 +61,16 @@ async function openUsuarioModal(id = null) {
             <input type="text" name="strNombreUsuario" value="${usuario.strNombreUsuario}" required>
         </div>
         <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" name="strCorreo" value="${usuario.strCorreo || ''}" placeholder="correo@ejemplo.com">
+        </div>
+        <div class="form-group">
             <label>Contraseña ${id ? '(dejar vacío para no cambiar)' : ''}</label>
             <input type="password" name="password" ${id ? '' : 'required'}>
+        </div>
+        <div class="form-group">
+            <label>Número de Celular</label>
+            <input type="text" name="strNumeroCelular" value="${usuario.strNumeroCelular || ''}" placeholder="+502 0000-0000">
         </div>
         <div class="form-group">
             <label>Perfil</label>
@@ -80,12 +88,42 @@ async function openUsuarioModal(id = null) {
             </select>
         </div>
         <div class="form-group">
-            <label>Imagen (URL Base64)</label>
-            <input type="text" name="imagen" value="${usuario.imagen || ''}" placeholder="data:image/...">
+            <label>Imagen de Perfil</label>
+            <div style="display: flex; align-items: start; gap: 1rem;">
+                <div class="image-preview-container" id="imagePreviewContainer">
+                    <img src="${usuario.imagen || 'https://ui-avatars.com/api/?name='+(usuario.strNombreUsuario||'U')+'&background=ffdbe9&color=f06292'}" id="userImagePreview" onerror="this.src='https://ui-avatars.com/api/?name=U&background=ffdbe9&color=f06292'">
+                </div>
+                <div style="flex: 1">
+                    <input type="file" id="imageInput" accept="image/*" style="width: 100%; border: none; padding: 0;">
+                    <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem;">Seleccione una imagen de su dispositivo para subirla a la nube.</p>
+                </div>
+            </div>
+            <input type="hidden" name="imagen" id="imagenUrl" value="${usuario.imagen || ''}">
         </div>
     `;
 
     showModal(id ? 'Editar Usuario' : 'Agregar Usuario', formHtml, async (formData) => {
+        const imageInput = document.getElementById('imageInput');
+        const imagenUrlInput = document.getElementById('imagenUrl');
+        
+        if (imageInput.files.length > 0) {
+            try {
+                const btn = document.querySelector('#modalForm button[type="submit"]');
+                const originalText = btn.textContent;
+                btn.textContent = 'Subiendo...';
+                btn.disabled = true;
+                
+                const uploadedUrl = await uploadToImgBB(imageInput.files[0]);
+                imagenUrlInput.value = uploadedUrl;
+                
+                btn.textContent = originalText;
+                btn.disabled = false;
+            } catch (err) {
+                alert('Error al subir la imagen: ' + err.message);
+                return;
+            }
+        }
+
         const data = Object.fromEntries(formData.entries());
         data.idPerfil = parseInt(data.idPerfil);
         data.idEstadoUsuario = parseInt(data.idEstadoUsuario);
@@ -97,10 +135,26 @@ async function openUsuarioModal(id = null) {
             });
             closeModal();
             loadUsuarioModule();
+            // Update header if we edited ourselves
+            const loggedUser = JSON.parse(localStorage.getItem('user'));
+            if (id === loggedUser?.id) {
+                loadUserInfo();
+            }
         } catch (err) {
             alert(err.message);
         }
     });
+
+    // Add preview logic
+    document.getElementById('imageInput').onchange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById('userImagePreview').src = event.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    };
 }
 
 window.loadUsuarioModule = loadUsuarioModule;

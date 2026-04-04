@@ -1,116 +1,148 @@
-async function loadPermisoPerfilModule(page = 0) {
+// ================================================================
+//  PERMISOS-PERFIL MODULE
+//  Shows a profile selector + full module-permission matrix table
+//  Matching the credential-card-style design from the reference image
+// ================================================================
+
+async function loadPermisoPerfilModule() {
     const contentArea = document.getElementById('contentArea');
     updateBreadcrumbs(['Configuración', 'Permisos por Perfil']);
-    try {
-        const data = await request(`/permisos_perfil?page=${page}&size=5`);
 
-        contentArea.innerHTML = `
-            <h1>Gestión de Permisos</h1>
-            <div class="action-bar">
-                <button class="btn" onclick="openPermisoModal()">+ Asignar Permisos</button>
-            </div>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Perfil</th>
-                        <th>Módulo</th>
-                        <th>Permisos (A|E|C|X|D)</th>
-                        <th style="text-align: right">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${data.content.map(p => `
-                        <tr>
-                            <td style="font-weight: 600">${p.perfil.strNombrePerfil}</td>
-                            <td><span class="status-pill active">${p.modulo.strNombreModulo}</span></td>
-                            <td>
-                                <div style="display: flex; gap: 0.3rem">
-                                    <span title="Agregar" style="opacity: ${p.bitAgregar ? '1' : '0.2'}">➕</span>
-                                    <span title="Editar" style="opacity: ${p.bitEditar ? '1' : '0.2'}">📝</span>
-                                    <span title="Consultar" style="opacity: ${p.bitConsulta ? '1' : '0.2'}">🔍</span>
-                                    <span title="Eliminar" style="opacity: ${p.bitEliminar ? '1' : '0.2'}">❌</span>
-                                    <span title="Detalle" style="opacity: ${p.bitDetalle ? '1' : '0.2'}">📄</span>
-                                </div>
-                            </td>
-                            <td class="actions-cell">
-                                <button class="btn btn-secondary" onclick="openPermisoModal(${p.id})">Editar</button>
-                                <button class="btn btn-danger" onclick="deletePermiso(${p.id})">Eliminar</button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-        contentArea.appendChild(createPaginator(data, loadPermisoPerfilModule));
+    let perfiles = [];
+    try {
+        const res = await request('/perfil');
+        perfiles = res.content || [];
     } catch (err) {
-        contentArea.innerHTML = `<div class="login-card" style="max-width: 100%; border-color: #ffcdd2"><p style="color: #c62828">Error: ${err.message}</p></div>`;
+        contentArea.innerHTML = `<p style="color:#c62828">Error al cargar perfiles: ${err.message}</p>`;
+        return;
+    }
+
+    contentArea.innerHTML = `
+        <h1>Permisos por Perfil</h1>
+
+        <div class="permiso-card">
+            <div class="permiso-section-label">[Datos Perfil]</div>
+
+            <div class="permiso-profile-row">
+                <label class="permiso-profile-label">Perfil:</label>
+                <select id="permisoPerfilSelect" class="permiso-profile-select">
+                    <option value="">-- Seleccione un perfil --</option>
+                    ${perfiles.map(p => `<option value="${p.id}">${p.strNombrePerfil.toUpperCase()}</option>`).join('')}
+                </select>
+                <button class="btn permiso-buscar-btn" onclick="buscarPermisos()">Buscar</button>
+            </div>
+
+            <div id="permisoMatrizContainer"></div>
+        </div>
+    `;
+}
+
+async function buscarPermisos() {
+    const perfilId = parseInt(document.getElementById('permisoPerfilSelect').value);
+    const container = document.getElementById('permisoMatrizContainer');
+
+    if (!perfilId) {
+        container.innerHTML = `<p style="color:#c62828; margin-top:1rem;">Seleccione un perfil primero.</p>`;
+        return;
+    }
+
+    container.innerHTML = `<p style="margin-top:1rem; color:var(--text-muted)">Cargando módulos...</p>`;
+
+    try {
+        const [modulosRes, permisosRes] = await Promise.all([
+            request('/modulo'),
+            request('/permisos_perfil?page=0&size=1000')
+        ]);
+
+        const modulos = modulosRes.content || [];
+        const todosPermisos = permisosRes.content || [];
+
+        // Map by module ID for this profile
+        const permisoMap = {};
+        todosPermisos
+            .filter(p => p.perfil.id === perfilId)
+            .forEach(p => { permisoMap[p.modulo.id] = p; });
+
+        container.innerHTML = `
+            <div class="permiso-section-label" style="margin-top:1.5rem">[Módulos web]</div>
+
+            <div class="permiso-table-wrapper">
+                <table class="permiso-matrix-table">
+                    <thead>
+                        <tr>
+                            <th>Módulo</th>
+                            <th>Agregar</th>
+                            <th>Editar</th>
+                            <th>Eliminar</th>
+                            <th>Consultar</th>
+                            <th>Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${modulos.map(m => {
+                            const p = permisoMap[m.id] || {};
+                            return `
+                            <tr data-modulo-id="${m.id}" data-permiso-id="${p.id || ''}">
+                                <td class="permiso-modulo-name">${m.strNombreModulo.toUpperCase()}</td>
+                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="agregar" ${p.bitAgregar ? 'checked' : ''}></td>
+                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="editar"   ${p.bitEditar ? 'checked' : ''}></td>
+                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="eliminar" ${p.bitEliminar ? 'checked' : ''}></td>
+                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="consulta" ${p.bitConsulta ? 'checked' : ''}></td>
+                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="detalle"  ${p.bitDetalle ? 'checked' : ''}></td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="permiso-actions">
+                <button class="btn permiso-guardar-btn" onclick="guardarPermisos(${perfilId})">Guardar</button>
+                <button class="btn btn-secondary permiso-cancelar-btn" onclick="loadPermisoPerfilModule()">Cancelar</button>
+            </div>
+        `;
+    } catch (err) {
+        container.innerHTML = `<p style="color:#c62828; margin-top:1rem;">Error: ${err.message}</p>`;
     }
 }
 
-async function openPermisoModal(id = null) {
-    let permiso = { idPerfil: '', idModulo: '', bitAgregar: false, bitEditar: false, bitConsulta: false, bitEliminar: false, bitDetalle: false };
-    if (id) {
-        permiso = await request(`/permisos_perfil/${id}`);
-        permiso.idPerfil = permiso.perfil.id;
-        permiso.idModulo = permiso.modulo.id;
-    }
+async function guardarPermisos(perfilId) {
+    const rows = document.querySelectorAll('#permisoMatrizContainer tbody tr');
+    const saves = [];
 
-    const perfiles = (await request('/perfil')).content;
-    const modulos = (await request('/modulo')).content;
+    rows.forEach(row => {
+        const moduloId   = parseInt(row.dataset.moduloId);
+        const permisoId  = row.dataset.permisoId ? parseInt(row.dataset.permisoId) : null;
+        const checkboxes = row.querySelectorAll('.permiso-checkbox');
 
-    const formHtml = `
-        <div class="form-group">
-            <label>Perfil</label>
-            <select name="idPerfil" required>
-                <option value="">Seleccione Perfil...</option>
-                ${perfiles.map(p => `<option value="${p.id}" ${p.id === permiso.idPerfil ? 'selected' : ''}>${p.strNombrePerfil}</option>`).join('')}
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Módulo</label>
-            <select name="idModulo" required>
-                <option value="">Seleccione Módulo...</option>
-                ${modulos.map(m => `<option value="${m.id}" ${m.id === permiso.idModulo ? 'selected' : ''}>${m.strNombreModulo}</option>`).join('')}
-            </select>
-        </div>
-        <div class="checkbox-grid">
-            <label class="checkbox-item"><input type="checkbox" name="bitAgregar" ${permiso.bitAgregar ? 'checked' : ''}> Agregar</label>
-            <label class="checkbox-item"><input type="checkbox" name="bitEditar" ${permiso.bitEditar ? 'checked' : ''}> Editar</label>
-            <label class="checkbox-item"><input type="checkbox" name="bitConsulta" ${permiso.bitConsulta ? 'checked' : ''}> Consultar</label>
-            <label class="checkbox-item"><input type="checkbox" name="bitEliminar" ${permiso.bitEliminar ? 'checked' : ''}> Eliminar</label>
-            <label class="checkbox-item"><input type="checkbox" name="bitDetalle" ${permiso.bitDetalle ? 'checked' : ''}> Detalle</label>
-        </div>
-    `;
-
-    showModal(id ? 'Editar Permisos' : 'Asignar Permisos', formHtml, async (formData) => {
         const data = {
-            idPerfil: parseInt(formData.get('idPerfil')),
-            idModulo: parseInt(formData.get('idModulo')),
-            bitAgregar: formData.get('bitAgregar') === 'on',
-            bitEditar: formData.get('bitEditar') === 'on',
-            bitConsulta: formData.get('bitConsulta') === 'on',
-            bitEliminar: formData.get('bitEliminar') === 'on',
-            bitDetalle: formData.get('bitDetalle') === 'on'
+            idPerfil:    perfilId,
+            idModulo:    moduloId,
+            bitAgregar:  checkboxes[0].checked,
+            bitEditar:   checkboxes[1].checked,
+            bitEliminar: checkboxes[2].checked,
+            bitConsulta: checkboxes[3].checked,
+            bitDetalle:  checkboxes[4].checked
         };
-        
-        try {
-            await request(`/permisos_perfil${id ? '/' + id : ''}`, {
-                method: id ? 'PUT' : 'POST',
-                body: JSON.stringify(data)
-            });
-            closeModal();
-            loadPermisoPerfilModule();
-        } catch (err) {
-            alert(err.message);
+
+        if (permisoId) {
+            saves.push(request(`/permisos_perfil/${permisoId}`, { method: 'PUT',  body: JSON.stringify(data) }));
+        } else {
+            saves.push(request(`/permisos_perfil`,                { method: 'POST', body: JSON.stringify(data) }));
         }
     });
+
+    try {
+        await Promise.all(saves);
+        // Show success feedback inline
+        const btn = document.querySelector('.permiso-guardar-btn');
+        btn.textContent = '✓ Guardado';
+        btn.style.background = '#43a047';
+        setTimeout(() => buscarPermisos(), 1200);
+    } catch (err) {
+        alert('Error al guardar: ' + err.message);
+    }
 }
 
 window.loadPermisoPerfilModule = loadPermisoPerfilModule;
-window.openPermisoModal = openPermisoModal;
-window.deletePermiso = async (id) => {
-    if (confirm('¿Seguro?')) {
-        await request(`/permisos_perfil/${id}`, { method: 'DELETE' });
-        loadPermisoPerfilModule();
-    }
-};
+window.buscarPermisos = buscarPermisos;
+window.guardarPermisos = guardarPermisos;
