@@ -125,6 +125,9 @@ async function openUsuarioModal(id = null) {
         }
 
         const data = Object.fromEntries(formData.entries());
+        // IMPORTANT: FormData is a snapshot from submit time (before the async upload).
+        // We must read imagenUrl's current DOM value to get the freshly uploaded URL.
+        data.imagen = document.getElementById('imagenUrl').value;
         data.idPerfil = parseInt(data.idPerfil);
         data.idEstadoUsuario = parseInt(data.idEstadoUsuario);
         
