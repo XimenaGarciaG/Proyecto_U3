@@ -9,8 +9,6 @@ import proyecto.proyecto.entity.Perfil;
 import proyecto.proyecto.entity.Usuario;
 import proyecto.proyecto.repository.PerfilRepository;
 import proyecto.proyecto.repository.UsuarioRepository;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 
 @SpringBootApplication
 public class ProyectoApplication {
@@ -49,13 +47,4 @@ public class ProyectoApplication {
 		};
 	}
 
-	@Bean
-	public WebServerFactoryCustomizer<TomcatServletWebServerFactory> webServerFactoryCustomizer() {
-		return factory -> {
-			String port = System.getenv("PORT");
-			if (port != null) {
-				factory.setPort(Integer.parseInt(port));
-			}
-		};
-	}
 }
