@@ -38,11 +38,27 @@ async function loadPermisoPerfilModule() {
 }
 
 async function buscarPermisos() {
-    const perfilId = parseInt(document.getElementById('permisoPerfilSelect').value);
+    const perfilSelect = document.getElementById('permisoPerfilSelect');
+    const perfilId = parseInt(perfilSelect.value);
     const container = document.getElementById('permisoMatrizContainer');
 
+    // Limpiar error previo del select
+    perfilSelect.classList.remove('field-error');
+    const prevErr = perfilSelect.parentElement.querySelector('.field-error-msg');
+    if (prevErr) prevErr.remove();
+
     if (!perfilId) {
-        container.innerHTML = `<p style="color:#c62828; margin-top:1rem;">Seleccione un perfil primero.</p>`;
+        perfilSelect.classList.add('field-error');
+        const errMsg = document.createElement('span');
+        errMsg.className = 'field-error-msg';
+        errMsg.textContent = 'Debe seleccionar un perfil antes de buscar.';
+        perfilSelect.parentElement.appendChild(errMsg);
+        // Limpiar error al cambiar la selección
+        perfilSelect.addEventListener('change', () => {
+            perfilSelect.classList.remove('field-error');
+            const e = perfilSelect.parentElement.querySelector('.field-error-msg');
+            if (e) e.remove();
+        }, { once: true });
         return;
     }
 

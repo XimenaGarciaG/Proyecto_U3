@@ -712,3 +712,48 @@ input[type="file"] {
     padding: 0.7rem 2rem;
     border-radius: 10px;
 }
+
+/* ================================================================
+   FORM VALIDATION STYLES
+   ================================================================ */
+
+.field-error {
+    border-color: #e53935 !important;
+    box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.1) !important;
+    animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(-5px); }
+    75%       { transform: translateX(5px); }
+}
+
+.field-error-msg {
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #e53935;
+    animation: fadeIn 0.2s ease;
+}
+
+/* Login field errors inherit positioning from form-group */
+.login-card .field-error-msg {
+    padding-left: 0.2rem;
+}
+
+.form-error-banner {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: fadeIn 0.2s ease;
+}

@@ -59,6 +59,15 @@ async function openPerfilModal(id = null) {
     `;
 
     showModal(id ? 'Editar Perfil' : 'Agregar Perfil', formHtml, async (formData) => {
+        const modalForm = document.getElementById('modalForm');
+
+        // --- Validaciones Perfil ---
+        const isValid = validateForm(modalForm, [
+            { name: 'strNombrePerfil', label: 'Nombre del Perfil', rules: ['required', 'minlength:3', 'maxlength:50'] }
+        ]);
+        if (!isValid) return;
+        // --- Fin validaciones ---
+
         const data = Object.fromEntries(formData.entries());
         data.bitAdministrador = formData.get('bitAdministrador') === 'true';
         

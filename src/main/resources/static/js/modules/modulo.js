@@ -50,6 +50,15 @@ async function openModuloModal(id = null) {
     `;
 
     showModal(id ? 'Editar Módulo' : 'Nuevo Módulo', formHtml, async (formData) => {
+        const modalForm = document.getElementById('modalForm');
+
+        // --- Validaciones Módulo ---
+        const isValid = validateForm(modalForm, [
+            { name: 'strNombreModulo', label: 'Nombre del Módulo', rules: ['required', 'minlength:2', 'maxlength:50'] }
+        ]);
+        if (!isValid) return;
+        // --- Fin validaciones ---
+
         const data = Object.fromEntries(formData.entries());
         try {
             await request(`/modulo${id ? '/' + id : ''}`, {

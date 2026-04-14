@@ -103,6 +103,28 @@ async function openUsuarioModal(id = null) {
     `;
 
     showModal(id ? 'Editar Usuario' : 'Agregar Usuario', formHtml, async (formData) => {
+        const modalForm = document.getElementById('modalForm');
+
+        // --- Validaciones Usuario ---
+        const validationRules = [
+            { name: 'strNombreUsuario', label: 'Nombre de Usuario',  rules: ['required', 'no-spaces', 'minlength:3', 'maxlength:50'] },
+            { name: 'strCorreo',        label: 'Correo Electrónico', rules: ['required', 'email', 'maxlength:50'] },
+            { name: 'strNumeroCelular', label: 'Número de Celular',  rules: ['required', 'phone'] }
+        ];
+        // Contraseña: obligatoria solo en creación, pero si se ingresa en edición se valida igual
+        if (!id) {
+            validationRules.push({ name: 'password', label: 'Contraseña', rules: ['required', 'password', 'maxlength:50'] });
+        } else {
+            const pwField = modalForm.querySelector('[name="password"]');
+            if (pwField && pwField.value) {
+                validationRules.push({ name: 'password', label: 'Contraseña', rules: ['password', 'maxlength:50'] });
+            }
+        }
+
+        const isValid = validateForm(modalForm, validationRules);
+        if (!isValid) return;
+        // --- Fin validaciones ---
+
         const imageInput = document.getElementById('imageInput');
         const imagenUrlInput = document.getElementById('imagenUrl');
         
