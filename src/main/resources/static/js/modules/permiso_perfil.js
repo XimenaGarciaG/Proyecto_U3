@@ -66,18 +66,21 @@ async function buscarPermisos() {
 
     try {
         const [modulosRes, permisosRes] = await Promise.all([
-            request('/modulo'),
+            request('/modulo?size=1000'),
             request('/permisos_perfil?page=0&size=1000')
         ]);
 
         const modulos = modulosRes.content || [];
         const todosPermisos = permisosRes.content || [];
 
-        // Map by module ID for this profile
         const permisoMap = {};
         todosPermisos
-            .filter(p => p.perfil.id === perfilId)
-            .forEach(p => { permisoMap[p.modulo.id] = p; });
+            .filter(p => p && p.perfil && p.perfil.id === perfilId)
+            .forEach(p => { 
+                if (p.modulo && p.modulo.id) {
+                    permisoMap[p.modulo.id] = p; 
+                }
+            });
 
         container.innerHTML = `
             <div class="permiso-section-label" style="margin-top:1.5rem">[Módulos web]</div>

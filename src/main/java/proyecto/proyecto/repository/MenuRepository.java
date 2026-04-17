@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface MenuRepository extends JpaRepository<Menu, Long> {
     List<Menu> findByIdMenuPadre(Long idMenuPadre);
+    java.util.Optional<Menu> findByStrNombreMenu(String name);
 }
