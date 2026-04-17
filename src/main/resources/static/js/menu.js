@@ -102,13 +102,19 @@ async function loadModule(menu, parentName = null) {
 function loadStaticModule(name) {
     if (!mockDB[name]) mockDB[name] = [];
     const items = mockDB[name];
+
+    const canAdd = hasPermission(name, 'bitAgregar');
+    const canEdit = hasPermission(name, 'bitEditar');
+    const canDelete = hasPermission(name, 'bitEliminar');
+    const canDetail = hasPermission(name, 'bitDetalle');
+    const canView = hasPermission(name, 'bitConsulta');
     
     const contentArea = document.getElementById('contentArea');
     contentArea.innerHTML = `
         <h1>${name}</h1>
         <div class="action-bar">
-            <button class="btn" onclick="openStaticModal('${name}')">+ Agregar Nuevo</button>
-            <button class="btn btn-secondary" onclick="alert('Estadísticas y reportes de ${name} generados correctamente.')">Generar Reporte</button>
+            ${canAdd ? `<button class="btn" onclick="openStaticModal('${name}')">+ Agregar Nuevo</button>` : ''}
+            ${canView ? `<button class="btn btn-secondary" onclick="alert('Estadísticas y reportes de ${name} generados correctamente.')">Generar Reporte</button>` : ''}
         </div>
         <table class="data-table">
             <thead>
@@ -127,9 +133,9 @@ function loadStaticModule(name) {
                         <td style="font-weight: 600">${item.desc}</td>
                         <td><span class="status-pill ${item.status === 'Activo' ? 'active' : 'inactive'}">${item.status}</span></td>
                         <td class="actions-cell">
-                            <button class="btn btn-secondary" style="background:var(--primary-light); color:var(--primary-color)" onclick="openStaticModal('${name}', ${item.id}, true)">Detalle</button>
-                            <button class="btn btn-secondary" onclick="openStaticModal('${name}', ${item.id})">Editar</button>
-                            <button class="btn btn-danger" onclick="deleteStaticItem('${name}', ${item.id})">Eliminar</button>
+                            ${canDetail ? `<button class="btn btn-secondary" style="background:var(--primary-light); color:var(--primary-color)" onclick="openStaticModal('${name}', ${item.id}, true)">Detalle</button>` : ''}
+                            ${canEdit ? `<button class="btn btn-secondary" onclick="openStaticModal('${name}', ${item.id})">Editar</button>` : ''}
+                            ${canDelete ? `<button class="btn btn-danger" onclick="deleteStaticItem('${name}', ${item.id})">Eliminar</button>` : ''}
                         </td>
                     </tr>
                 `).join('')}

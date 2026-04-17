@@ -3,10 +3,14 @@ async function loadPerfilModule(page = 0) {
     updateBreadcrumbs(['Configuración', 'Perfiles']);
     try {
         const data = await request(`/perfil?page=${page}&size=5`);
+        const canAdd = hasPermission('Perfil', 'bitAgregar');
+        const canEdit = hasPermission('Perfil', 'bitEditar');
+        const canDelete = hasPermission('Perfil', 'bitEliminar');
+
         contentArea.innerHTML = `
             <h1>Gestión de Perfiles</h1>
             <div class="action-bar">
-                <button class="btn" onclick="openPerfilModal()">+ Agregar Perfil</button>
+                ${canAdd ? '<button class="btn" onclick="openPerfilModal()">+ Agregar Perfil</button>' : ''}
             </div>
             <table class="data-table">
                 <thead>
@@ -24,8 +28,8 @@ async function loadPerfilModule(page = 0) {
                             <td style="font-weight: 600">${p.strNombrePerfil}</td>
                             <td><span class="status-pill ${p.bitAdministrador ? 'active' : ''}">${p.bitAdministrador ? 'Administrador' : 'Estándar'}</span></td>
                             <td class="actions-cell">
-                                <button class="btn btn-secondary" onclick="openPerfilModal(${p.id})">Editar</button>
-                                <button class="btn btn-danger" onclick="deletePerfil(${p.id})">Eliminar</button>
+                                ${canEdit ? `<button class="btn btn-secondary" onclick="openPerfilModal(${p.id})">Editar</button>` : ''}
+                                ${canDelete ? `<button class="btn btn-danger" onclick="deletePerfil(${p.id})">Eliminar</button>` : ''}
                             </td>
                         </tr>
                     `).join('')}

@@ -233,3 +233,29 @@ function validateForm(form, rules) {
 
     return valid;
 }
+
+/**
+ * Verifica si el usuario logueado tiene un permiso específico.
+ * @param {string} moduloName - Nombre del módulo (ej: 'Usuario', 'Perfil')
+ * @param {string} bitName - Nombre del permiso (ej: 'bitAgregar', 'bitEditar', 'bitEliminar')
+ * @returns {boolean}
+ */
+function hasPermission(moduloName, bitName) {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return false;
+    
+    try {
+        const user = JSON.parse(userStr);
+        if (!user.permisos) return false;
+        
+        // Buscar el módulo en la lista de permisos
+        const permiso = user.permisos.find(p => p.nombreModulo === moduloName);
+        if (!permiso) return false;
+        
+        // Retornar el valor del permiso solicitado
+        return permiso[bitName] === true;
+    } catch (e) {
+        console.error("Error al verificar permisos:", e);
+        return false;
+    }
+}

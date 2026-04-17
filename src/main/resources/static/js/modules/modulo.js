@@ -3,10 +3,14 @@ async function loadModuloModule(page = 0) {
     updateBreadcrumbs(['Configuración', 'Módulos']);
     try {
         const data = await request(`/modulo?page=${page}&size=5`);
+        const canAdd = hasPermission('Modulo', 'bitAgregar');
+        const canEdit = hasPermission('Modulo', 'bitEditar');
+        const canDelete = hasPermission('Modulo', 'bitEliminar');
+
         contentArea.innerHTML = `
             <h1>Gestión de Módulos</h1>
             <div class="action-bar">
-                <button class="btn" onclick="openModuloModal()">+ Nuevo Módulo</button>
+                ${canAdd ? '<button class="btn" onclick="openModuloModal()">+ Nuevo Módulo</button>' : ''}
             </div>
             <table class="data-table">
                 <thead>
@@ -22,8 +26,8 @@ async function loadModuloModule(page = 0) {
                             <td>#${m.id}</td>
                             <td style="font-weight: 600">${m.strNombreModulo}</td>
                             <td class="actions-cell">
-                                <button class="btn btn-secondary" onclick="openModuloModal(${m.id})">Editar</button>
-                                <button class="btn btn-danger" onclick="deleteModulo(${m.id})">Eliminar</button>
+                                ${canEdit ? `<button class="btn btn-secondary" onclick="openModuloModal(${m.id})">Editar</button>` : ''}
+                                ${canDelete ? `<button class="btn btn-danger" onclick="deleteModulo(${m.id})">Eliminar</button>` : ''}
                             </td>
                         </tr>
                     `).join('')}

@@ -82,6 +82,8 @@ async function buscarPermisos() {
                 }
             });
 
+        const canEdit = hasPermission('Permisos-Perfil', 'bitEditar');
+
         container.innerHTML = `
             <div class="permiso-section-label" style="margin-top:1.5rem">[Módulos web]</div>
 
@@ -103,11 +105,11 @@ async function buscarPermisos() {
                             return `
                             <tr data-modulo-id="${m.id}" data-permiso-id="${p.id || ''}">
                                 <td class="permiso-modulo-name">${m.strNombreModulo.toUpperCase()}</td>
-                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="agregar" ${p.bitAgregar ? 'checked' : ''}></td>
-                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="editar"   ${p.bitEditar ? 'checked' : ''}></td>
-                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="eliminar" ${p.bitEliminar ? 'checked' : ''}></td>
-                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="consulta" ${p.bitConsulta ? 'checked' : ''}></td>
-                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="detalle"  ${p.bitDetalle ? 'checked' : ''}></td>
+                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="agregar" ${p.bitAgregar ? 'checked' : ''} ${!canEdit ? 'disabled' : ''}></td>
+                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="editar"   ${p.bitEditar ? 'checked' : ''} ${!canEdit ? 'disabled' : ''}></td>
+                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="eliminar" ${p.bitEliminar ? 'checked' : ''} ${!canEdit ? 'disabled' : ''}></td>
+                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="consulta" ${p.bitConsulta ? 'checked' : ''} ${!canEdit ? 'disabled' : ''}></td>
+                                <td class="permiso-check-cell"><input type="checkbox" class="permiso-checkbox" data-field="detalle"  ${p.bitDetalle ? 'checked' : ''} ${!canEdit ? 'disabled' : ''}></td>
                             </tr>`;
                         }).join('')}
                     </tbody>
@@ -115,7 +117,7 @@ async function buscarPermisos() {
             </div>
 
             <div class="permiso-actions">
-                <button class="btn permiso-guardar-btn" onclick="guardarPermisos(${perfilId})">Guardar</button>
+                ${canEdit ? `<button class="btn permiso-guardar-btn" onclick="guardarPermisos(${perfilId})">Guardar</button>` : ''}
                 <button class="btn btn-secondary permiso-cancelar-btn" onclick="loadPermisoPerfilModule()">Cancelar</button>
             </div>
         `;

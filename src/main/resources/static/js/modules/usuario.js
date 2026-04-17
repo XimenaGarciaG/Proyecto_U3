@@ -3,10 +3,14 @@ async function loadUsuarioModule(page = 0) {
     updateBreadcrumbs(['Administración', 'Usuarios']);
     try {
         const data = await request(`/usuario?page=${page}&size=5`);
+        const canAdd = hasPermission('Usuario', 'bitAgregar');
+        const canEdit = hasPermission('Usuario', 'bitEditar');
+        const canDelete = hasPermission('Usuario', 'bitEliminar');
+
         contentArea.innerHTML = `
             <h1>Gestión de Usuarios</h1>
             <div class="action-bar">
-                <button class="btn" onclick="openUsuarioModal()">+ Nuevo Usuario</button>
+                ${canAdd ? '<button class="btn" onclick="openUsuarioModal()">+ Nuevo Usuario</button>' : ''}
             </div>
             <table class="data-table">
                 <thead>
@@ -32,8 +36,8 @@ async function loadUsuarioModule(page = 0) {
                             <td>${u.strCorreo || 'N/A'}</td>
                             <td><span class="status-pill ${u.idEstadoUsuario === 1 ? 'active' : 'inactive'}">${u.idEstadoUsuario === 1 ? 'Activo' : 'Inactivo'}</span></td>
                             <td class="actions-cell">
-                                <button class="btn btn-secondary" onclick="openUsuarioModal(${u.id})">Editar</button>
-                                <button class="btn btn-danger" onclick="deleteUsuario(${u.id})">Eliminar</button>
+                                ${canEdit ? `<button class="btn btn-secondary" onclick="openUsuarioModal(${u.id})">Editar</button>` : ''}
+                                ${canDelete ? `<button class="btn btn-danger" onclick="deleteUsuario(${u.id})">Eliminar</button>` : ''}
                             </td>
                         </tr>
                     `).join('')}
