@@ -127,6 +127,12 @@ async function buscarPermisos() {
 }
 
 async function guardarPermisos(perfilId) {
+    const btn = document.querySelector('.permiso-guardar-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Guardando...';
+    }
+
     const rows = document.querySelectorAll('#permisoMatrizContainer tbody tr');
     const saves = [];
 
@@ -154,13 +160,28 @@ async function guardarPermisos(perfilId) {
 
     try {
         await Promise.all(saves);
-        // Show success feedback inline
+        
+        // Determinar si los cambios afectar al usuario actual
+        const user = JSON.parse(localStorage.getItem('user'));
+        const isOwnProfile = user && user.perfilId === perfilId;
+
         const btn = document.querySelector('.permiso-guardar-btn');
         btn.textContent = '✓ Guardado';
         btn.style.background = '#43a047';
-        setTimeout(() => buscarPermisos(), 1200);
+        
+        if (isOwnProfile) {
+            alert('Tus permisos han sido actualizados. La página se recargará para aplicar los cambios.');
+            window.location.reload();
+        } else {
+            setTimeout(() => buscarPermisos(), 1200);
+        }
     } catch (err) {
         alert('Error al guardar: ' + err.message);
+        const btn = document.querySelector('.permiso-guardar-btn');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Guardar';
+        }
     }
 }
 

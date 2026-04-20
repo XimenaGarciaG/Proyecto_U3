@@ -9,8 +9,13 @@ import proyecto.proyecto.repository.ModuloRepository;
 import proyecto.proyecto.dto.PermisoPerfilDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 @Service
 public class PermisoPerfilService {
@@ -23,6 +28,29 @@ public class PermisoPerfilService {
     @Autowired
     ModuloRepository moduloRepository;
 
+    @PostConstruct
+    public void limpiarDuplicados() {
+        // Tarea quirúrgica: Borrar duplicados perfil+modulo dejando solo el más nuevo
+        List<PermisoPerfil> all = permisoPerfilRepository.findAll();
+        Map<String, List<PermisoPerfil>> map = new HashMap<>();
+
+        for (PermisoPerfil p : all) {
+            String key = p.getPerfil().getId() + "-" + p.getModulo().getId();
+            map.computeIfAbsent(key, k -> new ArrayList<>()).add(p);
+        }
+
+        for (List<PermisoPerfil> list : map.values()) {
+            if (list.size() > 1) {
+                // Ordenar por ID descendente (el más nuevo primero)
+                list.sort(Comparator.comparing(PermisoPerfil::getId).reversed());
+                // Borrar todos excepto el primero
+                for (int i = 1; i < list.size(); i++) {
+                    permisoPerfilRepository.delete(list.get(i));
+                }
+            }
+        }
+    }
+
     public Page<PermisoPerfil> getAll(Pageable pageable) {
         return permisoPerfilRepository.findAll(pageable);
     }
@@ -32,6 +60,16 @@ public class PermisoPerfilService {
     }
 
     public PermisoPerfil save(PermisoPerfilDTO dto) {
+        // UPSERT LOGIC OPTIMIZADA: Uso directo de repositorio
+        Optional<PermisoPerfil> existing = permisoPerfilRepository.findByPerfilAndModulo(
+                perfilRepository.findById(dto.getIdPerfil()).orElse(null),
+                moduloRepository.findById(dto.getIdModulo()).orElse(null)
+        );
+
+        if (existing.isPresent()) {
+            return update(existing.get().getId(), dto);
+        }
+
         PermisoPerfil permiso = new PermisoPerfil();
         permiso.setPerfil(perfilRepository.findById(dto.getIdPerfil()).orElseThrow());
         permiso.setModulo(moduloRepository.findById(dto.getIdModulo()).orElseThrow());

@@ -25,13 +25,18 @@ public class PermissionService {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetailsImpl) {
             UserDetailsImpl userDetails = (UserDetailsImpl) principal;
+            
+            // BYPASS ADMIN EN BACKEND
+            if (userDetails.isBitAdministrador()) {
+                return true;
+            }
+
             Long perfilId = userDetails.getPerfilId();
             
-            // This is a bit inefficient to do every time, but required for simplicity here
-            // In a real app, we might cache this or use Spring Security authorities
-            Optional<PermisoPerfil> permiso = permisoPerfilRepository.findAll().stream()
-                    .filter(p -> p.getPerfil().getId().equals(perfilId) && p.getModulo().getStrNombreModulo().equalsIgnoreCase(moduloNombre))
-                    .findFirst();
+            Optional<PermisoPerfil> permiso = permisoPerfilRepository.findByPerfilAndModulo(
+                    perfilRepository.findById(perfilId).orElse(null),
+                    moduloRepository.findByStrNombreModuloIgnoreCase(moduloNombre.trim()).orElse(null)
+            );
 
             if (permiso.isPresent()) {
                 PermisoPerfil p = permiso.get();

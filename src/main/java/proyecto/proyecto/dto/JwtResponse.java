@@ -14,15 +14,17 @@ public class JwtResponse {
     private String email;
     private Long perfilId;
     private String imagen;
+    private boolean bitAdministrador;
     private List<PermisoPerfilDTO> permisos;
 
-    public JwtResponse(String token, Long id, String username, String email, Long perfilId, String imagen, List<PermisoPerfilDTO> permisos) {
+    public JwtResponse(String token, Long id, String username, String email, Long perfilId, String imagen, boolean bitAdministrador, List<PermisoPerfilDTO> permisos) {
         this.token = token;
         this.id = id;
         this.username = username;
         this.email = email;
         this.perfilId = perfilId;
         this.imagen = imagen;
+        this.bitAdministrador = bitAdministrador;
         this.permisos = permisos;
     }
 }

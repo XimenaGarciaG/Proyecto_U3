@@ -69,21 +69,39 @@ function toggleSubmenu(el) {
 // MODULE: Load content area based on selected menu item
 // =========================================================
 async function loadModule(menu, parentName = null) {
+    // SINCRO: Antes de cargar cualquier módulo, refrescamos la info del usuario
+    // Esto asegura que tengamos los permisos más recientes del servidor.
+    await loadUserInfo();
+
+    const name = menu.nombreModulo || menu.nombreMenu;
+    
+    // GUARD: Verificar si el usuario aún tiene permiso de 'Consulta' (bitConsulta)
+    // Si no lo tiene, denegamos el acceso y lo mandamos a bienvenida.
+    if (!hasPermission(name, 'bitConsulta')) {
+        const contentArea = document.getElementById('contentArea');
+        contentArea.innerHTML = `
+            <div style="text-align: center; margin-top: 3rem;">
+                <h1 style="color: var(--primary-dark)">Acceso Denegado</h1>
+                <p>Usted ya no tiene permisos para acceder al módulo <strong>${name}</strong>.</p>
+                <button class="btn" onclick="window.location.reload()">Recargar Aplicación</button>
+            </div>
+        `;
+        // Actualizar menú para que desaparezca la opción si es necesario
+        loadMenu(); 
+        return;
+    }
+
     const breadcrumbs = [];
     if (parentName) {
         breadcrumbs.push(parentName);
     } else if (menu.idMenuPadre && menu.idMenuPadre !== 0) {
-        // Fallback for cases where parentName wasn't passed, 
-        // though we'll update the callers to pass it.
         breadcrumbs.push('Menú'); 
     }
-    breadcrumbs.push(menu.nombreModulo || menu.nombreMenu);
+    breadcrumbs.push(name);
     updateBreadcrumbs(breadcrumbs);
 
     const contentArea = document.getElementById('contentArea');
     contentArea.innerHTML = '<p>Cargando...</p>';
-
-    const name = menu.nombreModulo;
 
     document.querySelectorAll('#dynamicMenu a').forEach(a => a.classList.remove('active'));
     const link = Array.from(document.querySelectorAll('#dynamicMenu a')).find(
@@ -91,12 +109,14 @@ async function loadModule(menu, parentName = null) {
     );
     if (link) link.classList.add('active');
 
-    if (name === 'Perfil') loadPerfilModule();
-    else if (name === 'Usuario') loadUsuarioModule();
-    else if (name === 'Modulo') loadModuloModule();
-    else if (name === 'Permisos-Perfil') loadPermisoPerfilModule();
-    else if (name && (name.startsWith('Principal') || name.includes('1.') || name.includes('2.'))) loadStaticModule(name);
-    else contentArea.innerHTML = `<h1>${name}</h1><p>Módulo en desarrollo.</p>`;
+    const moduloName = menu.nombreModulo;
+
+    if (moduloName === 'Perfil') loadPerfilModule();
+    else if (moduloName === 'Usuario') loadUsuarioModule();
+    else if (moduloName === 'Modulo') loadModuloModule();
+    else if (moduloName === 'Permisos-Perfil') loadPermisoPerfilModule();
+    else if (moduloName && (moduloName.startsWith('Principal') || moduloName.includes('1.') || moduloName.includes('2.'))) loadStaticModule(moduloName);
+    else contentArea.innerHTML = `<h1>${moduloName}</h1><p>Módulo en desarrollo.</p>`;
 }
 
 function loadStaticModule(name) {
@@ -225,12 +245,29 @@ function setupProfileToggle() {
 // =========================================================
 async function loadUserInfo() {
     try {
-        // BUG FIX #2: request() already prepends '/api', so we only pass '/auth/me'
         const user = await request('/auth/me');
         if (user) {
+            // Sincronizar localStorage con la info más fresca del servidor (permisos incluidos)
+            const localUserStr = localStorage.getItem('user');
+            const localUser = localUserStr ? JSON.parse(localUserStr) : {};
+            
+            // Comparar permisos actuales con los nuevos para ver si necesitamos refrescar el menú
+            const oldPermisos = JSON.stringify(localUser.permisos || []);
+            const newPermisos = JSON.stringify(user.permisos || []);
+            const adminStatusChanged = localUser.bitAdministrador !== user.bitAdministrador;
+            
+            const updatedUser = { ...localUser, ...user };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            // Si los permisos o el rol cambiaron, refrescamos el menú lateral automáticamente
+            if (oldPermisos !== newPermisos || adminStatusChanged) {
+                console.log("Detectado cambio en permisos, actualizando menú lateral...");
+                loadMenu();
+            }
+
             const avatarUrl = user.imagen
                 || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || 'User')}&background=ffdbe9&color=f06292`;
-
+            
             const headerNameEl = document.getElementById('headerUserName');
             const headerAvatarEl = document.getElementById('headerUserAvatar');
             if (headerNameEl) headerNameEl.textContent = user.username || 'Usuario';

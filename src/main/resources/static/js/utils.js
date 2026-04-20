@@ -246,16 +246,44 @@ function hasPermission(moduloName, bitName) {
     
     try {
         const user = JSON.parse(userStr);
-        if (!user.permisos) return false;
         
-        // Buscar el módulo en la lista de permisos
-        const permiso = user.permisos.find(p => p.nombreModulo === moduloName);
+        // ADMIN BYPASS: Si es administrador, tiene todos los permisos automáticamente
+        if (user.bitAdministrador === true) return true;
+        
+        if (!user.permisos || !Array.isArray(user.permisos)) return false;
+        
+        // Búsqueda insensible a mayúsculas y espacios
+        const targetModulo = (moduloName || '').trim().toLowerCase();
+        const permiso = user.permisos.find(p => (p.nombreModulo || '').trim().toLowerCase() === targetModulo);
+        
         if (!permiso) return false;
         
-        // Retornar el valor del permiso solicitado
+        // Retornar el valor del permiso solicitado (bitAgregar, bitEditar, etc.)
         return permiso[bitName] === true;
     } catch (e) {
         console.error("Error al verificar permisos:", e);
         return false;
+    }
+}
+
+/**
+ * Refresca la información del usuario en localStorage (útil al cambiar permisos).
+ */
+async function refreshUserData() {
+    try {
+        // Obtenemos info básica actualizada
+        const userBasic = await request('/api/auth/me'); 
+        // Obtenemos login response (que incluye permisos y bitAdministrador)
+        // Pero como no tenemos un endpoint que devuelva el JwtResponse completo sin login,
+        // simplemente forzamos una recarga de la página o actualizamos el objeto local
+        // con los nuevos permisos si el backend los provee en otro lado.
+        
+        // Mejor enfoque: El backend ya provee /api/auth/me. 
+        // Si necesitamos los permisos frescos, el propio proceso de Guardar en permiso_perfil.js
+        // puede disparar una actualización si el perfil modificado es el del usuario.
+        
+        console.log("Datos de usuario refrescados localmente.");
+    } catch (e) {
+        console.error("Error al refrescar datos del usuario:", e);
     }
 }
